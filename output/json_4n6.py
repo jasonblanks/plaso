@@ -54,12 +54,9 @@ class Json2CSharpOutputFormatter(interface.FileOutputModule):
       filter_use: Optional filter object (instance of FilterObject).
                   The default is None.
     """
-
-
     super(Json2CSharpOutputFormatter, self).__init__(
         store, formatter_mediator, filehandle=filehandle, config=config,
         filter_use=filter_use)
-
     self._event_counter = 0
 
   def _SanitizeEntry(self, entry):
@@ -115,8 +112,8 @@ class Json2CSharpOutputFormatter(interface.FileOutputModule):
       if unicode(item[0]) == u'timestamp':
         print vars(self)
         try:
-          datetime_item = timelib.Timestamp.CopyToDatetime(item[1],
-                                                           self._timezone)
+          datetime_item = timelib.Timestamp.CopyToDatetime(
+              item[1], self._timezone)
           line.append(u'"{0:s}": "{1!s}"'.format(parent, datetime_item))
         except ValueError:
           line.append(u'"{0:s}": "Bad Time Format"'.format(parent))

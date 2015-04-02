@@ -89,55 +89,41 @@ class LinuxLogAuthParser(text_parser.PyparsingSingleLineTextParser):
         u'\nDefaulting to current year '))
     structure.month = timelib.MONTH_DICT.get(structure.month.lower(), None)
 
-    D = int(structure.day)
-    Y = int(year)
-    M = int(structure.month)
-    h = int(structure.time[0])
-    m = int(structure.time[1])
-    s = int(structure.time[2])
-    ms = int(0)
-    timestamp = timelib.Timestamp.FromTimeParts(Y, M, D, h, m, s, ms)
-    '''
-    timestamp = timelib.Timestamp.FromTimeParts(int(year),
-                                                int(structure.month),
-                                                int(structure.day),
-                                                int(structure.time[0]),
-                                                int(structure.time[1]),
-                                                int(structure.time[2]))
     try:
       timestamp = timelib.Timestamp.FromTimeParts(
           int(year, 10),
-          int(structure.month, 10),
-          int(structure.day, 10),
-          int(structure.time[0], 10),
-          int(structure.time[1], 10),
-          int(structure.time[2], 10))
+          int(structure.month),
+          int(structure.day),
+          int(structure.time[0]),
+          int(structure.time[1]),
+          int(structure.time[2]))
     except:
       logging.error((
-        u'Unable to determine month from auth log file'))
-    '''
-
-    if not (structure.month and structure.day and structure.time):
-      logging.warning(u'Unable to extract timestamp from auth logline.')
-      return
+          u'Unable to extract timestamp from auth log file'))
 
     return timestamp
 
   def VerifyStructure(self, parser_mediator, line):
-    authRegEx = re.compile(u'(auth\.log)|(auth\.log\.\d)|(auth.log\.\d\.gz)')
-    loglocation = self.file_entry.path_spec.location
+    """Verify that this file is a Auth log file.
+      Args:
+        parser_mediator: A parser mediator object (instance of ParserMediator).
+        line: A single line from the text file.
+      Returns:
+        True if this is the correct parser, False otherwise.
+      """
+    auth_regex = re.compile(u'(auth\.log)|(auth\.log\.\d)|(auth.log\.\d\.gz)')
+    log_location = self.file_entry.path_spec.location
 
-    if authRegEx.search(loglocation):
+    if auth_regex.search(log_location):
       return True
 
-    else:
-      return False
+    logging.debug(u'Invalid Auth log file.')
 
   def ParseRecord(self, parser_mediator, key, structure):
     """Parse each record structure and return an EventObject if apyparsinglicable.
 
     Args:
-      parser_mediator: A parser mediator object (instance of ParserContext).
+      parser_mediator: A parser mediator object (instance of ParserMediator).
       key: An identification string indicating the name of the parsed
            structure.
       structure: A pyparsing.ParseResults object from a line in the
@@ -161,8 +147,9 @@ class LinuxLogAuthParser(text_parser.PyparsingSingleLineTextParser):
 
     Args:
       structure: the pyparsing ParseResults object.
+      parser_mediator: A parser mediator object (instance of ParserMediator).
     Returns:
-      event_object: a plaso event or None.
+      An event object (instance of EventObject) or None.
     """
 
     timestamp = self.GetTimestamp(structure, parser_mediator.timezone)
